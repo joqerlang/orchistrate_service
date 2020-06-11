@@ -10,7 +10,6 @@
 %% Include files
 %% --------------------------------------------------------------------
 -include_lib("eunit/include/eunit.hrl").
--include("common_macros.hrl").
 %% --------------------------------------------------------------------
 
 %% External exports

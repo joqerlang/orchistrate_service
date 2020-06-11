@@ -9,9 +9,8 @@
 %% --------------------------------------------------------------------
 %% Include files
 %% --------------------------------------------------------------------
--include_lib("eunit/include/eunit.hrl").
--include("common_macros.hrl").
 
+-include_lib("eunit/include/eunit.hrl").
 
 
 -ifdef(dir).

@@ -11,11 +11,9 @@
 %% Include files
 %% --------------------------------------------------------------------
 
-
--include("common_macros.hrl").
-
 %-compile(export_all).
--export([update_info/3]).
+-export([simple_campaign/0,
+	 update_info/3]).
 
 
 
@@ -37,3 +35,8 @@ update_info(GitUrl,Dir,FileName)->
 %% 
 %%
 %% --------------------------------------------------------------------
+%% 1 Check missing services - try to start them
+simple_campaign()->
+    ok.
+    
+    

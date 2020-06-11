@@ -10,7 +10,7 @@
 %% --------------------------------------------------------------------
 %% Include files
 %% --------------------------------------------------------------------
--include("common_macros.hrl").
+
 %% --------------------------------------------------------------------
 
 
@@ -18,7 +18,7 @@
 %% Key Data structures
 %% 
 %% --------------------------------------------------------------------
--record(state,{app_info}).
+-record(state,{app_info,available,missing,obsolite}).
 
 
 %% --------------------------------------------------------------------
@@ -27,9 +27,14 @@
 -define(MASTER_HEARTBEAT,40*1000).
 -define(CATALOG_URL,"https://github.com/joqerlang/app_config.git/").
 -define(CATALOG_DIR,"app_config").
+-ifdef(infra_test).
+-define(CATALOG_FILENAME,"app_infra_test.spec").
+-else.
 -define(CATALOG_FILENAME,"app.spec").
+-endif.
 
--export([get_service/1,get_all/0,update_info/0
+-export([get_info/1,update_info/0,
+	 get_service/1
 	]).
 
 -export([start/0,
@@ -62,10 +67,10 @@ ping()->
 %%-----------------------------------------------------------------------
 
 %%
-get_all()->
-    gen_server:call(?MODULE, {get_all},infinity).
 get_service(ServiceId)->
     gen_server:call(?MODULE, {get_service,ServiceId},infinity).
+get_info(ServiceId)->
+    gen_server:call(?MODULE, {get_info,ServiceId},infinity).
 update_info()->
      gen_server:call(?MODULE, {update_info},infinity).
 
@@ -88,6 +93,7 @@ heart_beat(Interval)->
 %% --------------------------------------------------------------------
 init([]) ->
     {ok,AppInfo}=orchistrate:update_info(?CATALOG_URL,?CATALOG_DIR,?CATALOG_FILENAME),
+    
     {ok, #state{app_info=AppInfo}}.   
     
 %% --------------------------------------------------------------------
@@ -104,11 +110,11 @@ handle_call({ping},_From,State) ->
     Reply={pong,node(),?MODULE},
     {reply, Reply, State};
 
-handle_call({get_all}, _From, State) ->
+handle_call({get_info,all}, _From, State) ->
     Reply=State#state.app_info,
     {reply, Reply,State};
 
-handle_call({get_service,WantedServiceId}, _From, State) ->
+handle_call({get_info,WantedServiceId}, _From, State) ->
     Reply=[{ServiceId,Node}||{ServiceId,Node}<-State#state.app_info,
 				   ServiceId==WantedServiceId],
     {reply, Reply,State};
@@ -183,7 +189,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 h_beat(Interval)->
-    case rpc:call(node(),orchistrater,campaign,[],60*1000) of
+    case rpc:call(node(),orchistrater,simple_campaign,[],60*1000) of
 	ok->
 	    ok;
 	Err->

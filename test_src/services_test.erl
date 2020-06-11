@@ -10,15 +10,6 @@
 %% Include files
 %% --------------------------------------------------------------------
 -include_lib("eunit/include/eunit.hrl").
--include("common_macros.hrl").
-
-
-
--ifdef(dir).
--define(CHECK_CATALOG,check_catalog_dir()).
--else.
--define(CHECK_CATALOG,check_catalog_git()).
--endif.
 
 
 %% --------------------------------------------------------------------
