@@ -37,6 +37,25 @@ update_info(GitUrl,Dir,FileName)->
 %% --------------------------------------------------------------------
 %% 1 Check missing services - try to start them
 simple_campaign()->
+     case boot_service:dns_get("catalog_service") of
+	[{_,CatalogNode}|_]->
+	     case rpc:call(CatalogNode,_service,available,[])
+	    ListOfNodes=rpc:call(CatalogNode,_service,available,[]),
+	    [rpc:cast(Node,boot_service,dns_update,[DnsInfo])||{_,Node}<-ListOfNodes];
+	Err->
+	    {ok,Catalog}=catalog:update(?CATALOG_URL,?CATALOG_DIR,?CATALOG_FILENAME),
+	    {ok,NewDnsInfo}=dns:update(Catalog),
+	    spawn(fun()->catalog_service:dns_update() end),
+	    io:format("Err = ~p~n",[{?MODULE,?LINE,Err}]),
+	    io:format("Catalog = ~p~n",[{?MODULE,?LINE,Catalog}]),
+	    io:format("NewDnsInfo = ~p~n",[{?MODULE,?LINE,NewDnsInfo}])
+	    
+	    
+    end,
+    spawn(fun()->catalog_service:app_spec_update() end),
+    timer:sleep(Interval),
+    rpc:cast(node(),?MODULE,heart_beat,[Interval]).
+
     ok.
     
     
