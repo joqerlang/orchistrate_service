@@ -37,25 +37,15 @@ update_info(GitUrl,Dir,FileName)->
 %% --------------------------------------------------------------------
 %% 1 Check missing services - try to start them
 simple_campaign()->
-     case boot_service:dns_get("catalog_service") of
-	[{_,CatalogNode}|_]->
-	     case rpc:call(CatalogNode,_service,available,[])
-	    ListOfNodes=rpc:call(CatalogNode,_service,available,[]),
-	    [rpc:cast(Node,boot_service,dns_update,[DnsInfo])||{_,Node}<-ListOfNodes];
-	Err->
-	    {ok,Catalog}=catalog:update(?CATALOG_URL,?CATALOG_DIR,?CATALOG_FILENAME),
-	    {ok,NewDnsInfo}=dns:update(Catalog),
-	    spawn(fun()->catalog_service:dns_update() end),
-	    io:format("Err = ~p~n",[{?MODULE,?LINE,Err}]),
-	    io:format("Catalog = ~p~n",[{?MODULE,?LINE,Catalog}]),
-	    io:format("NewDnsInfo = ~p~n",[{?MODULE,?LINE,NewDnsInfo}])
-	    
-	    
+    case boot_service:dns_get("catalog_service") of
+	 [{_,CatalogNode}|_]->
+	     Missing=rpc:call(CatalogNode,catalog_service,missing,[]),
+	     [rpc:call(Node,boot_service,start_service,[ServiceId])||{ServiceId,Node}<-Missing],
+	     Obsolite=rpc:call(CatalogNode,catalog_service,obsolite,[]),
+	     [rpc:call(Node,boot_service,stop_service,[ServiceId])||{ServiceId,Node}<-Obsolite];
+	 Err ->
+	     io:format("~p~n",[{?MODULE,?LINE,Err}])
     end,
-    spawn(fun()->catalog_service:app_spec_update() end),
-    timer:sleep(Interval),
-    rpc:cast(node(),?MODULE,heart_beat,[Interval]).
-
     ok.
     
     
