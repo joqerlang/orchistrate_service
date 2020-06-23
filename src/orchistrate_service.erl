@@ -192,10 +192,12 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 h_beat(Interval)->
-    case rpc:call(node(),orchistrater,simple_campaign,[],15*1000) of
+    case rpc:call(node(),orchistrate,simple_campaign,[],15*1000) of
 	ok->
+	    io:format("ok ~p~n",[{?MODULE,?LINE,ok}]),
 	    ok;
 	Err->
+	     io:format("error ~p~n",[{?MODULE,?LINE,Err}]),
 	    rpc:call(node(),lib_service,log_event,[?MODULE,?LINE,orchistrater,campaign,error,[Err]])
     end,
     timer:sleep(Interval),
