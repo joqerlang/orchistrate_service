@@ -53,16 +53,15 @@ start()->
 %% Returns: non
 %% -------------------------------------------------------------------
 get_all()->
-    ?assertEqual([{"dns_service",root_sthlm_1@asus},
-		  {"log_service",root_sthlm_1@asus},
-		  {"adder_service",worker_varmdoe_1@asus},
+    ?assertEqual([{"iaas_service",master_sthlm_1@asus},
+		  {"adder_service",worker_sthlm_3@asus},
 		  {"adder_service",worker_sthlm_1@asus},
-		  {"divi_service",worker_sthlm_2@asus}],orchistrate_service:get_all()),
+		  {"divi_service",worker_sthlm_2@asus}],orchistrate_service:get_info(all)),
     ok.
 
 get_service()->
-    ?assertEqual([{"adder_service",worker_varmdoe_1@asus},
-		  {"adder_service",worker_sthlm_1@asus}],orchistrate_service:get_service("adder_service")),
+    ?assertEqual([{"adder_service",worker_sthlm_3@asus},
+		  {"adder_service",worker_sthlm_1@asus}],orchistrate_service:get_info("adder_service")),
     ok.
 
 update_info()->

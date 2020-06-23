@@ -192,6 +192,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 h_beat(Interval)->
+    timer:sleep(Interval),
     case rpc:call(node(),orchistrate,simple_campaign,[],15*1000) of
 	ok->
 	    io:format("ok ~p~n",[{?MODULE,?LINE,ok}]),
@@ -200,7 +201,6 @@ h_beat(Interval)->
 	     io:format("error ~p~n",[{?MODULE,?LINE,Err}]),
 	    rpc:call(node(),lib_service,log_event,[?MODULE,?LINE,orchistrater,campaign,error,[Err]])
     end,
-    timer:sleep(Interval),
     rpc:cast(node(),?MODULE,heart_beat,[Interval]).
 
 %% --------------------------------------------------------------------

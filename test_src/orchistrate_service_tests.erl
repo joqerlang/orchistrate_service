@@ -37,8 +37,8 @@ cases_test()->
     
     ?debugMsg("orchistrate test "),
     ?assertEqual(ok,orc_test:start()),
-    ?debugMsg("service test "),
-    ?assertEqual(ok,services_test:start()),
+ %   ?debugMsg("service test "),
+  %  ?assertEqual(ok,services_test:start()),
 
     ?debugMsg("Start stop_test_system:start"),
     %% End application tests
