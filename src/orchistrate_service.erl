@@ -24,7 +24,7 @@
 %% --------------------------------------------------------------------
 %% Definitions 
 %% --------------------------------------------------------------------
--define(MASTER_HEARTBEAT,40*1000).
+-define(ORCHISTRATE_HEARTBEAT,20*1000).
 -define(CATALOG_URL,"https://github.com/joqerlang/app_config.git/").
 -define(CATALOG_DIR,"app_config").
 -ifdef(infra_test).
@@ -93,6 +93,7 @@ heart_beat(Interval)->
 %% --------------------------------------------------------------------
 init([]) ->
     {ok,AppInfo}=orchistrate:update_info(?CATALOG_URL,?CATALOG_DIR,?CATALOG_FILENAME),
+    spawn(fun()->h_beat(?ORCHISTRATE_HEARTBEAT) end),     
     
     {ok, #state{app_info=AppInfo}}.   
     
@@ -144,8 +145,10 @@ handle_call(Request, From, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% -------------------------------------------------------------------
 handle_cast({heart_beat,Interval}, State) ->
+    {ok,AppInfo}=orchistrate:update_info(?CATALOG_URL,?CATALOG_DIR,?CATALOG_FILENAME),
+    NewState=State#state{app_info=AppInfo},
     spawn(fun()->h_beat(Interval) end),    
-    {noreply, State};
+    {noreply, NewState};
 
 handle_cast(Msg, State) ->
     io:format("unmatched match cast ~p~n",[{?MODULE,?LINE,Msg}]),
@@ -189,7 +192,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 h_beat(Interval)->
-    case rpc:call(node(),orchistrater,simple_campaign,[],60*1000) of
+    case rpc:call(node(),orchistrater,simple_campaign,[],15*1000) of
 	ok->
 	    ok;
 	Err->
