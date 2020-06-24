@@ -39,9 +39,12 @@ update_info(GitUrl,Dir,FileName)->
 simple_campaign()->
     case boot_service:dns_get("catalog_service") of
 	 [{_,CatalogNode}|_]->
-	     Missing=rpc:call(CatalogNode,catalog_service,missing,[]),
-	    io:format("Missing ~p~n",[{?MODULE,?LINE,Missing}]),
-	     [rpc:call(Node,boot_service,start_service,[ServiceId])||{ServiceId,Node}<-Missing],
+	    M1=rpc:call(CatalogNode,catalog_service,missing,[]),
+	    io:format("Missing ~p~n",[{?MODULE,?LINE,M1}]),
+						% Missing [{ServiceId,Node}]
+	    M2=[{rpc:call(CatalogNode,catalog_service,get_service_addr,[ServiceId]),Node}||{ServiceId,Node}<-M1],
+	    % {{ServiceId,Type,Source},Node}
+		[rpc:call(Node,boot_service,start_service,[ServiceId,Type,Source])||{{ServiceId,Type,Source},Node}<-M2],
 	     Obsolite=rpc:call(CatalogNode,catalog_service,obsolite,[]),
 	    io:format("Obsolite ~p~n",[{?MODULE,?LINE,Obsolite}]),
 	     [rpc:call(Node,boot_service,stop_service,[ServiceId])||{ServiceId,Node}<-Obsolite];
