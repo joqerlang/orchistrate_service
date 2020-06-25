@@ -39,15 +39,12 @@ update_info(GitUrl,Dir,FileName)->
 simple_campaign()->
     case boot_service:dns_get("catalog_service") of
 	 [{_,CatalogNode}|_]->
-	    M1=rpc:call(CatalogNode,catalog_service,missing,[]),
-	    io:format("Missing ~p~n",[{?MODULE,?LINE,M1}]),
+	    Missing=rpc:call(CatalogNode,catalog_service,missing,[]),
+	    io:format("Missing ~p~n",[{?MODULE,?LINE,Missing}]),
 						% Missing [{ServiceId,Node}]
-	    M2=create_start_list(M1,CatalogNode,[]),
+	    R1=create_start_services(Missing,CatalogNode,[]),
 	    
 	    % {{ServiceId,Type,Source},Node}
-	    io:format("M2 ~p~n",[{?MODULE,?LINE,M2}]),
-	    R1=[{rpc:call(Node,boot_service,start_service,[ServiceId,Type,Source]),Node}||{ServiceId,Type,Source,Node}<-M2],
-	    _R2=[{rpc:call(CatalogNode,catallog_service,dns_add,[ServiceId,Node]),Node}||{{ok,ServiceId},Node}<-R1],
 	    io:format("Start services ~p~n",[{?MODULE,?LINE,R1}]),
 	     Obsolite=rpc:call(CatalogNode,catalog_service,obsolite,[]),
 	    io:format("Obsolite ~p~n",[{?MODULE,?LINE,Obsolite}]),
@@ -57,11 +54,25 @@ simple_campaign()->
     end,
     ok.
     
-create_start_list([],_CatalogNode,Acc)->
+create_start_services([],_CatalogNode,Acc)->
     Acc;
     
-create_start_list([{ServiceId,Node}|T],CatalogNode,Acc)->
+create_start_services([{ServiceId,Node}|T],CatalogNode,Acc)->
     L=rpc:call(CatalogNode,catalog_service,get_service,[ServiceId]),
-    R=[{ServiceId2,Type,Source,Node}||{ServiceId2,Type,Source}<-L],
+    X=[{ServiceId2,Type,Source,Node}||{ServiceId2,Type,Source}<-L],
+    R=start_services(X,CatalogNode,[]),
     NewAcc=lists:append(Acc,R),
-    create_start_list(T,CatalogNode,NewAcc).
+    create_start_services(T,CatalogNode,NewAcc).
+
+start_services([],_CatalogNode,StartResult)->
+    StartResult;
+start_services([{ServiceId,Type,Source,Node}|T],CatalogNode,Acc)->
+    R=case rpc:call(Node,boot_service,start_service,[ServiceId,Type,Source]) of
+	  {ok,ServiceId}->
+	      rpc:call(CatalogNode,catallog_service,dns_add,[ServiceId,Node]),
+	      {ok,ServiceId};
+	  Err ->
+	      rpc:call(CatalogNode,catallog_service,dns_delete,[ServiceId,Node]),
+	      {error,Err}
+      end,
+    start_services(T,CatalogNode,[R|Acc]).
