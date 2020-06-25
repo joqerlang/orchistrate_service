@@ -145,8 +145,13 @@ handle_call(Request, From, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% -------------------------------------------------------------------
 handle_cast({heart_beat,Interval}, State) ->
-    {ok,AppInfo}=orchistrate:update_info(?CATALOG_URL,?CATALOG_DIR,?CATALOG_FILENAME),
-    NewState=State#state{app_info=AppInfo},
+    NewState=case orchistrate:update_info(?CATALOG_URL,?CATALOG_DIR,?CATALOG_FILENAME) of
+		 {ok,AppInfo}->
+		     State#state{app_info=AppInfo};
+		 Err->
+		     io:format("error ~p~n",[{?MODULE,?LINE,Err}]),
+		     State
+	     end,
     spawn(fun()->h_beat(Interval) end),    
     {noreply, NewState};
 
