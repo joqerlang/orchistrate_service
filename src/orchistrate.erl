@@ -42,17 +42,25 @@ simple_campaign()->
 	    M1=rpc:call(CatalogNode,catalog_service,missing,[]),
 	    io:format("Missing ~p~n",[{?MODULE,?LINE,M1}]),
 						% Missing [{ServiceId,Node}]
-	    M2=[{rpc:call(CatalogNode,catalog_service,get_service,[ServiceId]),Node}||{ServiceId,Node}<-M1],
+	    M2=create_start_list(M1,CatalogNode,[]),
+	    
 	    % {{ServiceId,Type,Source},Node}
 	    io:format("M2 ~p~n",[{?MODULE,?LINE,M2}]),
 	    R1=[rpc:call(Node,boot_service,start_service,[ServiceId,Type,Source])||{{ServiceId,Type,Source},Node}<-M2],
 	    io:format("Start services ~p~n",[{?MODULE,?LINE,R1}]),
 	     Obsolite=rpc:call(CatalogNode,catalog_service,obsolite,[]),
 	    io:format("Obsolite ~p~n",[{?MODULE,?LINE,Obsolite}]),
-	     [rpc:call(Node,boot_service,stop_service,[ServiceId])||{ServiceId,Node}<-Obsolite];
+	    [rpc:call(Node,boot_service,stop_service,[ServiceId])||{ServiceId,Node}<-Obsolite];
 	 Err ->
 	     io:format("~p~n",[{?MODULE,?LINE,Err}])
     end,
     ok.
     
+create_start_list([],_CatalogNode,Acc)->
+    Acc;
     
+create_start_list([{ServiceId,Node}|T],CatalogNode,Acc)->
+    L=rpc:call(CatalogNode,catalog_service,get_service,[ServiceId]),
+    R=[{ServiceId2,Type,Source,Node}||{ServiceId2,Type,Source}<-L],
+    NewAcc=lists:append(Acc,R),
+    create_start_list(T,CatalogNode,NewAcc).
