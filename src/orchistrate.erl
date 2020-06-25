@@ -69,10 +69,10 @@ start_services([],_CatalogNode,StartResult)->
 start_services([{ServiceId,Type,Source,Node}|T],CatalogNode,Acc)->
     R=case rpc:call(Node,boot_service,start_service,[ServiceId,Type,Source]) of
 	  {ok,ServiceId}->
-	      rpc:call(CatalogNode,catallog_service,dns_add,[ServiceId,Node]),
+	      ok=rpc:call(CatalogNode,catalog_service,dns_add,[ServiceId,Node]),
 	      {ok,ServiceId};
 	  Err ->
-	      rpc:call(CatalogNode,catallog_service,dns_delete,[ServiceId,Node]),
+	      rpc:call(CatalogNode,catalog_service,dns_delete,[ServiceId,Node]),
 	      {error,Err}
       end,
     start_services(T,CatalogNode,[R|Acc]).
