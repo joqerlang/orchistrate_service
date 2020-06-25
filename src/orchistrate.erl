@@ -42,7 +42,7 @@ simple_campaign()->
 	    M1=rpc:call(CatalogNode,catalog_service,missing,[]),
 	    io:format("Missing ~p~n",[{?MODULE,?LINE,M1}]),
 						% Missing [{ServiceId,Node}]
-	    M2=[{rpc:call(CatalogNode,catalog_service,get_service_addr,[ServiceId]),Node}||{ServiceId,Node}<-M1],
+	    M2=[{rpc:call(CatalogNode,catalog_service,get_service,[ServiceId]),Node}||{ServiceId,Node}<-M1],
 	    % {{ServiceId,Type,Source},Node}
 	    io:format("M2 ~p~n",[{?MODULE,?LINE,M2}]),
 	    R1=[rpc:call(Node,boot_service,start_service,[ServiceId,Type,Source])||{{ServiceId,Type,Source},Node}<-M2],
