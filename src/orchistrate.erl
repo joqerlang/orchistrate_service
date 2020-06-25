@@ -46,7 +46,7 @@ simple_campaign()->
 	    
 	    % {{ServiceId,Type,Source},Node}
 	    io:format("M2 ~p~n",[{?MODULE,?LINE,M2}]),
-	    R1=[rpc:call(Node,boot_service,start_service,[ServiceId,Type,Source])||{{ServiceId,Type,Source},Node}<-M2],
+	    R1=[rpc:call(Node,boot_service,start_service,[ServiceId,Type,Source])||{ServiceId,Type,Source,Node}<-M2],
 	    io:format("Start services ~p~n",[{?MODULE,?LINE,R1}]),
 	     Obsolite=rpc:call(CatalogNode,catalog_service,obsolite,[]),
 	    io:format("Obsolite ~p~n",[{?MODULE,?LINE,Obsolite}]),
